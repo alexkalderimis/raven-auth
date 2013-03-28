@@ -25,11 +25,13 @@ module.exports = class WlsResponse
         sig-ok = @status isnt 200 or (@sig? and @kid?)
         andList [parts-ok, princ-ok, auth-ok, sig-ok]
 
-    @parse = (auth-types, source) ->
+    @parse = (auth-types, source) -->
         | not source => new NoResponse
         | otherwise  => new WlsResponse auth-types, source / \!
 
 class NoResponse extends WlsResponse
+
+    ->
 
     is-valid: -> false
 
