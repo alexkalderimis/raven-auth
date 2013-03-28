@@ -1,14 +1,5 @@
-WlsResponse = require './raven/wls-response'
+MiddleWare = require './raven/middle-ware'
 
-module.exports = (req, res, next) -->
-    reply = get-reply req.body
-
-get-reply = (params) ->
-    resp = WlsResponse.parse params['WLS-Response']
-    return void unless resp?
-
-
-
-
+module.exports = MiddleWare
 
 
