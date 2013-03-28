@@ -1,0 +1,16 @@
+{
+  "name": "raven-auth",
+  "version": "0.0.1",
+  "description": "Authentication middle-ware for raven, the authentication provider for cam.ac.uk",
+  "devDependencies": {
+    "LiveScript": "~1.1.1",
+    "grunt": "~0.4.1",
+    "mocha": "~1.8.2",
+    "grunt-contrib-watch": "~0.3.1",
+    "grunt-simple-mocha": "~0.3.2",
+    "grunt-contrib-clean": "~0.4.0"
+  },
+  "dependencies": {
+    "prelude-ls": "~0.6.0"
+  }
+}
