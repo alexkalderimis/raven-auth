@@ -1,6 +1,11 @@
-serialise-date = (date) -> date
+require! qs
 
-module.exports = class AuthRequest
+serialise-date = (date) -> date.toISOString().replace /[:\.-]/g, ''
 
-    ({req, @auth-types, @desc, @msg, @fail = 'yes', @ver = 2}) ->
-        @date = serialise-date new Date()
+module.exports = (wls-base, auth-types, {req, desc, msg, fail = 'yes', ver = 2}) -->
+    date = serialise-date new Date()
+    {url} = req
+    params = (req.body ? '')
+
+    wls-base + \? + qs.stringify {ver, url, desc, msg, params, date, fail}
+
