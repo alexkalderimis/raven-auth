@@ -42,7 +42,7 @@ handle-existing-session = (config, req, res, next) -->
     now = new Date().getTime()
     {session} = req
     {timeout} = config
-    {status-code, issue, last, expire, message} = session
+    {status-code, issue, last, expire} = session
 
     if status-code is 410
         req.session = null
@@ -58,7 +58,7 @@ handle-existing-session = (config, req, res, next) -->
         res.end 'Session initiated or last used in future?', 'utf8'
     else if now >= expire or now >= last + timeout
         session.principal = ''
-        message = 'Your existing session has timed out'
+        session.message = 'Your existing session has timed out'
         return true
     else unless reply?
         if session.post-data?
@@ -70,8 +70,8 @@ handle-existing-session = (config, req, res, next) -->
 handle-reply = (config, reply, req, res) -->
 
     redirect = redirect-err session, res, raven-resp
-    {max-session-life, ver, iact, max-skew, read-reply, timeout} = config
-    iact ?= -> ''
+    {max-session-life, ver, max-skew, read-reply, timeout} = config
+    iact = config.iact ? (-> '')
     raven-resp = read-reply reply
     now = new Date().getTime()
     {session} = req
@@ -94,9 +94,8 @@ handle-reply = (config, reply, req, res) -->
             redirect "ERROR: wrong protocol version", 600
         else if raven-resp.status isnt 200
             err = 'ERROR: authentication failed - ' + raven-resp.status
-            if raven-resp.msg
-                err += ", #{ raven-resp.msg }"
-            redirect err, raven-resp.status
+            cause = if raven-resp.msg then ", #{ raven-resp.msg }" else ''
+            redirect err + cause, raven-resp.status
         else if raven-resp.issued-at.getTime() > now + max-skew + 1
             redirect "ERROR: reply issued in the future?", 600
         else if now - max-skew - 1 > raven-resp.issued-at.getTime() + timeout
@@ -106,7 +105,7 @@ handle-reply = (config, reply, req, res) -->
         else if iact(req) and not raven-resp.auth
             redirect 'ERROR: forced interaction request not honoured', 600
         else
-            session << {
+            session <<< {
                 status-code: 200
                 issue: now
                 last: now
