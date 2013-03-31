@@ -49,5 +49,5 @@ module.exports = (g) ->
         ui: 'bdd'
         reporter: 'spec'
       all:
-        src: 'build/test/*.js'
+        src: 'build/test/raven/*.js'
 
