@@ -16,7 +16,7 @@ re-sig = [[\- \+], [\. \/], [\_ \=]] |> listToObj |> objToFunc
 module.exports = class WlsResponse
 
     (key-store, auth-types, [@ver, stat, @msg, issue, @id, @url, @principal,
-      @auth, sso, life, @params, @kid, sig]) ->
+      @auth, sso, life, @params, @kid, sig]:parts) ->
         @status = +stat
         @issued-at = parse-date issue
         @previousAuth = sso.split ','
@@ -24,7 +24,8 @@ module.exports = class WlsResponse
         @acceptable = [] ++ (auth-types ? [])
         @is-accceptable = orList map (in @acceptable), @previousAuth ++ [@auth]
         @key = key-store @kid if @kid
-        @sig = new Buffer(sig, 'base64').toString('ascii').replace SIG_RE, re-sig
+        @sig = sig.replace SIG_RE, re-sig
+        @signed-data = take (parts.length - 2), parts |> (.join \:)
 
     is-valid: ->
         parts-ok = andList [@[x]? for x in required-parts]
@@ -34,7 +35,9 @@ module.exports = class WlsResponse
         andList [parts-ok, princ-ok, auth-ok, sig-ok]
 
     sig-matches-content: ->
-        true /* Not yet implemented */
+        v = crypto.createVerify 'sha1'
+        v.update @signed-data
+        v.verify(@key, @sig, 'base64')
 
     redirect: (res) ->
         res.writeHead 302, Location: @url
