@@ -1,15 +1,10 @@
 expect = require('chai').expect
 require! [fs, crypto]
+key-store = '../key-store'
 
 WlsResponse = require '../../raven/wls-response'
 
-key-dir = __dirname + '/../../../keys/demo-server/'
-
-read-key = -> fs.readFileSync "#{ key-dir }/#{ it }key901", 'utf8'
-
 auth-types = [ \dummy ]
-
-key-store = [ [x, read-key x] for x in <[ pub priv ]> ] |> listToObj |> objToFunc
 
 parse = WlsResponse.parse key-store, auth-types
 
