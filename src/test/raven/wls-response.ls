@@ -1,6 +1,6 @@
 expect = require('chai').expect
 require! [fs, crypto]
-key-store = '../key-store'
+key-store = require '../key-store'
 
 WlsResponse = require '../../raven/wls-response'
 

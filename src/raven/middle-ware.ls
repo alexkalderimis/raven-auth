@@ -1,4 +1,4 @@
-WlsResponse = require './raven-response'
+WlsResponse = require './wls-response'
 get-redirect = require './auth-request'
 
 redirect-err = (session, res, raven, message, code) -->
@@ -16,7 +16,7 @@ module.exports = (config) ->
 
     (req, res, next) ->
 
-        reply = res.query.WlsResponse
+        reply = req.query.WlsResponse
         {session} = req
 
         if session?
@@ -42,7 +42,7 @@ handle-existing-session = (config, req, res, next) -->
     now = new Date().getTime()
     {session} = req
     {timeout} = config
-    {status-code, issue, last, expire} = session
+    {status-code, issue, last, expire, message} = session
 
     if status-code is 410
         req.session = null
@@ -60,7 +60,7 @@ handle-existing-session = (config, req, res, next) -->
         session.principal = ''
         session.message = 'Your existing session has timed out'
         return true
-    else unless reply?
+    else unless req.query.WlsResponse
         if session.post-data?
             req.body = session.post-data
         session.last = now

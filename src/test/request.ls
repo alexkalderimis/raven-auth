@@ -1,3 +1,3 @@
 module.exports = class MockRequest
 
-    ({@url, @session = {}}) ->
+    ({@url, @session = {}, @query = {}}) ->
