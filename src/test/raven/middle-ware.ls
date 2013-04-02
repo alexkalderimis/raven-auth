@@ -26,7 +26,7 @@ let test = it
 
         @beforeAll -> raven req, res, next~next
 
-        test "the session should #{if exp-sess then 'not ' else ''} have been deleted", ->
+        test "the session should #{if exp-sess then 'not ' else ''}have been deleted", ->
             expect(req.session).to[if exp-sess then 'not' else 'be']equal null
 
         if code?
@@ -37,7 +37,7 @@ let test = it
             test "the response content should match #{ content }", ->
                 expect(res.content).to.match content
 
-        test 'next to not have been called', ->
+        test "next to #{ if called-next then '' else 'not '}have been called", ->
             expect(next.called).to.equal called-next
 
         f?( req, res, next )
