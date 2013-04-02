@@ -71,3 +71,5 @@ let test = it
 
             test 'Last use was updated', ->
                 expect(req.session.last).to.be.within now(-100), now!
+
+
