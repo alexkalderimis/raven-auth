@@ -4,6 +4,8 @@ key-store = require '../key-store'
 
 WlsResponse = require '../../raven/wls-response'
 
+Response = require '../response'
+
 auth-types = [ \dummy ]
 
 parse = WlsResponse.parse key-store, auth-types
@@ -88,4 +90,16 @@ let test = it
         @beforeAll -> resp := parse-reply args
 
         test 'should be valid', -> expect(resp.is-valid()).to.be.true
+
+        test 'should be able to redirect', ->
+
+            res = new Response
+            resp.redirect res
+
+            expect(res.data.ended).to.be.true
+            expect(res.headers.Location).to.equal 'http://some.url.org'
+            expect(res.statusCode).to.equal 302
+
+
+
 
