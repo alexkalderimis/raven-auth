@@ -1,6 +1,7 @@
 module.exports = (config, to-auth-req, req, res) -->
     {session} = req
     session.can-store = true
+    session.sent-to-raven = true
     session.post-data = req.body if req.method isnt \GET
     msg = config.get-msg? req
     desc = config.get-desc? req

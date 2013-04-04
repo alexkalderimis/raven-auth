@@ -1,4 +1,5 @@
 require! crypto
+require! qs
 
 not-there = (x) -> not x? or empty x
 
@@ -17,16 +18,17 @@ re-sig = [[\- \+], [\. \/], [\_ \=]] |> listToObj |> objToFunc
 
 module.exports = class WlsResponse
 
-    (key-store, auth-types, [ver, stat, @msg, issue, @id, @url, @principal,
+    (key-store, auth-types, [ver, stat, @msg, issue, @id, url, @principal,
       @auth, sso, life, @params, @kid, sig]:parts) ->
         @ver = +ver
+        @url = qs.parse("url=#{ url }").url
         @status = +stat
         @issued-at = parse-date issue
         @previousAuth = (sso ? '').split \,
         @life = +life
         @acceptable = acceptable = (auth-types ? []).slice!
         @is-acceptable = orList map (in acceptable), @previousAuth ++ [@auth]
-        @key = key-store @kid if @kid
+        @key = key-store(@kid) if @kid
         @sig = sig?.replace SIG_RE, re-sig
         @signed-data = take (parts.length - 2), parts |> (.join \!)
 
