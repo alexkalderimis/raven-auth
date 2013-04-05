@@ -7,7 +7,7 @@
     "grunt": "~0.4.1",
     "mocha": "~1.8.2",
     "grunt-contrib-watch": "~0.3.1",
-    "grunt-simple-mocha": "git://github.com/yaymukund/grunt-simple-mocha.git"
+    "grunt-simple-mocha": "git://github.com/yaymukund/grunt-simple-mocha.git",
     "grunt-contrib-clean": "~0.4.0",
     "chai": "~1.5.0",
     "connect": "~2.7.4"
