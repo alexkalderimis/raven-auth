@@ -22,7 +22,6 @@ ravenConf = {
 }
 
 demo = (req, res, next) ->
-    console.log "request to #{ req.url }"
     res
      ..setHeader 'Content-Type', 'text/html'
      ..write '<doctype! html><html><head></head><body>'

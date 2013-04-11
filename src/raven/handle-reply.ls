@@ -26,7 +26,6 @@ class ReplyHandler
         @reply = @redirect
 
         [err, code = 600] = @check-resp!
-        console.log err, code
 
         if err?
             @reject err, code
