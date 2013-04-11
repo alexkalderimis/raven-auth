@@ -20,7 +20,7 @@ get-args = -> [
     2,
     200,
     'a message',
-    \20130330T123456Z,
+    \20130411T184328Z,
     \id,
     'http://some.url.org',
     \me,
@@ -40,6 +40,15 @@ sign-args = (args) ->
 get-signed-args = (sign-args << get-args)
 
 let test = it
+
+    describe 'Time parsing', ->
+
+        var resp
+
+        @beforeAll -> resp := parse-reply get-args!
+
+        test 'Should get time in the right time-zone', ->
+            expect(resp.issued-at.get-time!).to.equal 1365705808000
 
     describe 'Empty responses', ->
 
