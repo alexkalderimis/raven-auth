@@ -4,13 +4,13 @@ raven = require '../raven/middle-ware'
 port = process.env.PORT or 3001
 
 test-keys = require './key-store'
-key-store = -> key-store \pub
+key-store = -> test-keys \pub
 raven-url = 'https://demo.raven.cam.ac.uk/auth/authenticate.html'
 timeout = 60000
 max-session-life = 24 * 60 * 60 * 1000
 ver = 2
 max-skew = 60000
-auth-types = []
+auth-types = [ \pwd ]
 local-host = "http://localhost:#{ port }"
 
 ravenConf = {

@@ -10,8 +10,10 @@ required-parts = [\ver \status \issuedAt \id \url]
 DATE_RE = /(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z/
 
 parse-date = (str) ->
-    | DATE_RE.test str => new Date ...[+x for x in drop 1, DATE_RE.exec str]
-    | otherwise => null
+    | DATE_RE.test(str) =>
+        let [y, mo, d, h, mi, s] = [+x for x in drop 1, DATE_RE.exec str]
+            new Date y, mo, d, h, mi, s # Can't subclass dates, so can't splat args
+    | otherwise         => null
 
 SIG_RE = /(_|\.|-)/g
 re-sig = [[\- \+], [\. \/], [\_ \=]] |> listToObj |> objToFunc
@@ -44,6 +46,7 @@ module.exports = class WlsResponse
     sig-ok: -> @status isnt 200 or (@sig? and @key? and @sig-matches-content())
 
     sig-matches-content: ->
+        console.log @sig, @signed-data if process.env.DEBUG
         v = crypto.createVerify 'sha1'
         v.update @signed-data
         v.verify(@key, @sig, 'base64')
@@ -59,6 +62,9 @@ module.exports = class WlsResponse
 class NoResponse extends WlsResponse
 
     ->
+        console.log "NO RESPONSE" if process.env.DEBUG
 
     is-valid: -> false
 
+!function debug
+    console.log ... if process.env.DEBUG

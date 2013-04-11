@@ -1,55 +1,90 @@
-redirect-err = (session, res, raven, message, code) -->
-    session.message = message
-    session.status-code = code
-    raven.redirect res
+class ReplyHandler
 
-module.exports = (config, reply, req, res) -->
+    (config, @req, @res) ->
+        import config
+        @now = new Date().getTime!
+        @url = @local-host + (@req.url ? '').replace /\?.*$/, ''
+        {@session} = @req
+    
+    parse-reply: (reply) ->
+        try
+            @raven-resp = @read-reply reply
+        catch e
+            @set-error 500, "Error: #{ e }\n#{ e.stack }"
 
-    {max-session-life, ver, max-skew, read-reply, timeout} = config
-    {session} = req
-    raven-resp = read-reply reply
-    redirect = redirect-err session, res, raven-resp
-    iact = config.iact ? (-> '')
-    now = new Date().getTime()
+    start-handling: ->
+        | not @raven-resp                  => null
+        | not @raven-resp.is-valid!        => @reject 'Invalid authentication response'
+        | @raven-resp.url isnt @url        => @reject "#{ @raven-resp.url } is not #{ @url }"
+        | @session?.principal is @raven-resp.principal => @accept!
+        | not @session?.can-store          => @reject 'Session error'
+        | otherwise                        => @init-session!
 
-    if not raven-resp.is-valid()
-        res.statusCode = 500
-        res.end 'Cannot parse authentication response.', 'utf8'
-    else if raven-resp.url isnt req.url
-        res.statusCode = 500
-        res.end 'URLs do not match', 'utf8'
-    else if session? and session.principal? and session.principal isnt ''
-        raven-resp.redirect res
-    else if not session?.can-store
-        res.statusCode = 500
-        res.end 'Session storage unavailable', 'utf8'
-    else
-        session.id = raven-resp.id
+    init-session: ->
 
-        if raven-resp.ver isnt ver
-            redirect "ERROR: wrong protocol version", 600
-        else if raven-resp.status isnt 200
-            err = 'ERROR: authentication failed - ' + raven-resp.status
-            cause = if raven-resp.msg then ", #{ raven-resp.msg }" else ''
-            redirect err + cause, raven-resp.status
-        else if raven-resp.issued-at.getTime() > now + max-skew + 1
-            redirect "ERROR: reply issued in the future?", 600
-        else if now - max-skew - 1 > raven-resp.issued-at.getTime() + timeout
-            redirect "ERROR: reply is stale", 600
-        else unless raven-resp.is-acceptable
-            redirect "ERROR: authentication method is unacceptable", 600
-        else if iact(req) and not raven-resp.auth
-            redirect 'ERROR: forced interaction request not honoured', 600
+        # Now we reply by redirecting.
+        @reply = @redirect
+
+        [err, code = 600] = @check-resp!
+
+        if err?
+            @reject err, code
         else
-            session <<< {
-                status-code: 200
-                issue: now
-                last: now
-                life: Math.min(max-session-life, raven-resp.life)
-                id: raven-resp.id
-                principal: raven-resp.principal
-                params: raven-resp.params
+            {life, id, principal, params} = @raven-resp
+            @session <<< {
+                issue: @now
+                last: @now
+                life: Math.min(@max-session-life, life)
+                id
+                principal
+                params
             }
 
-            raven-resp.redirect res
+            @accept!
 
+    redirect: ->
+        @session.message = @content
+        @session.status-code = @status-code
+        @raven-resp.redirect @res
+
+    accept: ->
+        @status-code = 200
+        @content = 'Authenticated'
+
+    reject: (msg, code = 500) ->
+        debug msg
+        @set-error code, "Error: #{ msg }"
+
+    set-error: (@status-code, @content) ->
+
+    iact: -> false
+
+    reply: ->
+        @res.status-code = @status-code
+        @res.end @content, \utf8
+
+    check-resp: ->
+
+        [min-now, max-now] = [foldl f, @now, [@max-skew, 1] for f in [(-), (+)]]
+        {ver, status, issued-at, is-acceptable, auth} = @raven-resp
+        
+        switch @raven-resp
+            | ver isnt @ver            => ['wrong protocol version']
+            | status isnt 200          =>
+                let err = 'ERROR: authentication failed - ' + raven-resp.status
+                    cause = if raven-resp.msg then ", #{ raven-resp.msg }" else ''
+                    [err + cause, raven-resp.status]
+            | issued-at > max-now      => ['reply issued in the future?']
+            | issued-at < min-now      => ['reply is stale']
+            | not is-acceptable        => ['authentication method is unacceptable']
+            | @iact @req and not auth? => ['forced interaction request not honoured']
+            | otherwise                => []
+
+module.exports = (config, reply, req, res) -->
+    handler = new ReplyHandler config, req, res
+        ..parse-reply reply
+        ..start-handling!
+        ..reply!
+
+!function debug
+    console.log ... if process.env.DEBUG
