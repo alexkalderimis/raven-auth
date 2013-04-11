@@ -9,7 +9,7 @@ This module handles raven authentication for connect web-applications.
 You might want to use this if you are developing web-apps for use within
 the University of Cambridge.
 
-```:javascript
+```js
 
 var raven = require('raven-auth');
 var connect = require('connect');
@@ -18,6 +18,7 @@ var routes = function(req, res, next) {
     res.write("Hello, " + req.session.principal);
     res.end();
 };
+var conf = {...}; // Your raven configuration here...
 
 var app = connect()
     .use(connect.bodyParser())
