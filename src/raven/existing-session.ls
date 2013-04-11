@@ -3,25 +3,17 @@ module.exports = (config, req, res, next, raven-resp) -->
     {session} = req
     {timeout} = config
     {status-code, issue, last, expire, message} = session
+    reject = err res, session
 
     if status-code is 410
-        debug "Auth cancelled"
-        req.session = null
-        res.statusCode = 403
-        res.end 'You cancelled the authentication', 'utf8'
+        reject 'You cancelled the authentication', 403  
     else if status-code? and status-code isnt 200
-        debug "Auth failed"
-        req.session = null
-        res.statusCode = 500
-        res.end message, 'utf8'
+        reject message, 500
     else if now? and (now < issue or now < last)
-        debug "Invalid session time"
-        req.session = null
-        res.statusCode = 500
-        res.end 'Session initiated or last used in future?', 'utf8'
+        reject 'Session initiated or last used in future?', 500
     else if now >= expire or now >= last + timeout
         debug "session timeout"
-        session.principal = ''
+        delete session.principal
         session.message = 'Your existing session has timed out'
         return true
     else if session.principal? and not raven-resp?
@@ -34,6 +26,12 @@ module.exports = (config, req, res, next, raven-resp) -->
         debug "Need to parse response from raven"
         return true
     false
+
+err = (res, session, message, code) -->
+    debug message
+    session.destroy!
+    res.status-code = code
+    res.end message, \utf8
 
 !function debug
     console.log ... if process.env.DEBUG
