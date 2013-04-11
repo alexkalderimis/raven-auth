@@ -8,6 +8,12 @@ phase1 = {timeout} |> require '../../raven/existing-session'
 
 now = (offset = 0) -> new Date().get-time! + offset
 
+class Session
+    (vals) -> import vals
+
+    destroy: -> @destroyed = true
+
+
 class Next
 
     called: false
@@ -20,7 +26,7 @@ let test = it
 
         middleware-test = (session, exp-sess, code, content, called-next, should-go, f) ->  ->
 
-            req = new Request {session}
+            req = new Request {session: new Session(session)}
             res = new Response
             next = new Next
             var go-on
@@ -28,7 +34,7 @@ let test = it
             @beforeAll -> go-on := phase1 req, res, next~next, null
 
             test "the session should #{if exp-sess then 'not ' else ''}have been deleted", ->
-                expect(req.session).to[if exp-sess then 'not' else 'be']equal null
+                expect(req.session.destroyed).to[if exp-sess then 'not' else 'be']true
 
             if code?
                 test "the response should be #{ code }", ->
@@ -71,7 +77,7 @@ let test = it
         describe 'Expired session',
             middleware-test {status-code, issue, last, expire: now(-10), principal: \foo}, true, null, null, false, true, (req) ->
                 test 'Should have an empty principal', ->
-                    expect(req.session.principal).to.equal ''
+                    expect(req.session.principal).to.not.exist
 
                 test 'Should store a message about session expiry', ->
                     expect(req.session.message).to.match /timed out/
