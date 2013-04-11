@@ -3,10 +3,17 @@ raven = require '../raven/middle-ware'
 
 port = process.env.PORT or 3001
 
-test-keys = require './key-store'
-key-store = -> test-keys \pub
-raven-url = 'https://demo.raven.cam.ac.uk/auth/authenticate.html'
-raven-log-out = 'https://demo.raven.cam.ac.uk/auth/logout.html'
+key-store =
+    | process.env.REAL_RAVEN => require('../raven/key-store') "#{ __dirname }/../../keys/raven"
+    | otherwise              =>
+        let test-keys = require('./key-store')
+            -> test-keys \pub
+
+raven-host = if process.env.REAL_RAVEN then 'raven.cam.ac.uk' else 'demo.raven.cam.ac.uk'
+
+raven-url     = "https://#{ raven-host }/auth/authenticate.html"
+raven-log-out = "https://#{ raven-host }/auth/logout.html"
+
 timeout = 60000
 max-session-life = 24 * 60 * 60 * 1000
 ver = 2
