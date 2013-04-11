@@ -53,7 +53,8 @@ let test = it
         last = now -500
         status-code = 200
         expire = now 10000
-        good-session = -> {status-code, issue, last, expire, post-data: 'somedata=foo'}
+        principal = \corvus
+        good-session = -> {principal, status-code, issue, last, expire, post-data: 'somedata=foo'}
 
         describe 'Cancelled authentication',
             phase1-failure {status-code: 410}, 403, /cancelled/

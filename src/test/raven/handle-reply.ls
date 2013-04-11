@@ -12,12 +12,12 @@ max-skew = 30000
 iact = (req) -> req.session.iact
 max-session-life = 100
 now = (offset = 0) -> new Date().get-time! + offset
+local-host = \here-
 
 get-config = -> {
-    max-session-life, iact, max-skew, ver,
+    max-session-life, iact, max-skew, ver, local-host,
     key-store, auth-types, timeout, read-reply: id
 }
-
 
 class InvalidResponse
     is-valid: -> false
@@ -44,8 +44,8 @@ let test = it
             test 'The response should be ended', ->
                 expect(res.data.ended).to.be.true
 
-            test 'The response should mention parsing', ->
-                expect(res.content).to.match /parse/
+            test 'The response should mention invalid', ->
+                expect(res.content).to.match /invalid/i
 
             test 'The response status should be 500', ->
                 expect(res.statusCode).to.equal 500
@@ -77,18 +77,21 @@ let test = it
 
             req = new Request url: \dummy, session: {principal: \foo}
             res = new Response
-            reply = new ValidResponse url: \dummy, principal: \foo
+            reply = new ValidResponse url: \here-dummy, principal: \foo
 
             phase2 reply, req, res
 
             test 'The response should be redirected to destination', ->
                 expect(res.data.redirected).to.be.true
 
+            test 'There should be no response content', ->
+                expect(res.content).to.not.exist
+
         describe 'No session storage', ->
 
             req = new Request url: \dummy
             res = new Response
-            reply = new ValidResponse url: \dummy
+            reply = new ValidResponse url: \here-dummy
 
             phase2 reply, req, res
 
@@ -108,14 +111,14 @@ let test = it
 
             req = new Request url: \dummy, session: {can-store: true}
             res = new Response
-            reply = new ValidResponse url: \dummy, ver: 1
+            reply = new ValidResponse url: \here-dummy, ver: 1
 
             phase2 reply, req, res
 
             test 'The response should be redirected to destination', ->
                 expect(res.data.redirected).to.be.true
 
-            test 'The session should store a the 600 code', ->
+            test 'The session should store a 600 code', ->
                 expect(req.session.status-code).to.equal 600
 
             test 'The session should store a message about protocols', ->
@@ -125,7 +128,7 @@ let test = it
 
             req = new Request url: \dummy, session: {can-store: true}
             res = new Response
-            reply = new ValidResponse url: \dummy, ver: 2, status: 400, msg: 'oops'
+            reply = new ValidResponse url: \here-dummy, ver: 2, status: 400, msg: 'oops'
 
             phase2 reply, req, res
 
@@ -143,7 +146,7 @@ let test = it
             req = new Request url: \dummy, session: {can-store: true}
             res = new Response
             reply = new ValidResponse {
-                url: \dummy
+                url: \here-dummy
                 ver: 2
                 status: 200
                 issued-at: new Date(now 100000)
@@ -165,7 +168,7 @@ let test = it
             req = new Request url: \dummy, session: {can-store: true}
             res = new Response
             reply = new ValidResponse {
-                url: \dummy
+                url: \here-dummy
                 ver: 2
                 status: 200
                 issued-at: new Date(now -100000)
@@ -187,7 +190,7 @@ let test = it
             req = new Request url: \dummy, session: {can-store: true}
             res = new Response
             reply = new ValidResponse {
-                url: \dummy
+                url: \here-dummy
                 ver: 2
                 status: 200
                 issued-at: new Date(now -10)
@@ -210,7 +213,7 @@ let test = it
             req = new Request url: \dummy, session: {can-store: true, iact: true}
             res = new Response
             reply = new ValidResponse {
-                url: \dummy
+                url: \here-dummy
                 ver: 2
                 status: 200
                 issued-at: new Date(now -10)
@@ -233,7 +236,7 @@ let test = it
             req = new Request url: \dummy, session: {can-store: true}
             res = new Response
             reply = new ValidResponse {
-                url: \dummy
+                url: \here-dummy
                 ver: 2
                 status: 200
                 issued-at: new Date(now -10)
@@ -275,7 +278,7 @@ let test = it
             req = new Request url: \dummy, session: {can-store: true, iact: true}
             res = new Response
             reply = new ValidResponse {
-                url: \dummy
+                url: \here-dummy
                 auth: \pwd
                 ver: 2
                 status: 200
@@ -318,7 +321,7 @@ let test = it
             req = new Request url: \dummy, session: {can-store: true, iact: true}
             res = new Response
             reply = new ValidResponse {
-                url: \dummy
+                url: \here-dummy
                 auth: \pwd
                 ver: 2
                 status: 200

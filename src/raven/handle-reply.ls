@@ -13,10 +13,10 @@ class ReplyHandler
             @set-error 500, "Error: #{ e }\n#{ e.stack }"
 
     start-handling: ->
-        | not @raven-resp                  => null
-        | not @raven-resp.is-valid!        => @reject 'Invalid authentication response'
-        | @raven-resp.url isnt @url        => @reject "#{ @raven-resp.url } is not #{ @url }"
-        | @session?.principal is @raven-resp.principal => @accept!
+        | not @raven-resp           => null
+        | not @raven-resp.is-valid! => @reject 'Invalid authentication response'
+        | @raven-resp.url isnt @url => @reject "Wrong URL: #{ @raven-resp.url }"
+        | (p = @session?.principal) and p is @raven-resp.principal => @accept!
         | not @session?.can-store          => @reject 'Session error'
         | otherwise                        => @init-session!
 
@@ -26,6 +26,7 @@ class ReplyHandler
         @reply = @redirect
 
         [err, code = 600] = @check-resp!
+        console.log err, code
 
         if err?
             @reject err, code
@@ -48,6 +49,8 @@ class ReplyHandler
         @raven-resp.redirect @res
 
     accept: ->
+        # Now we reply by redirecting.
+        @reply = @redirect
         @status-code = 200
         @content = 'Authenticated'
 
@@ -66,14 +69,14 @@ class ReplyHandler
     check-resp: ->
 
         [min-now, max-now] = [foldl f, @now, [@max-skew, 1] for f in [(-), (+)]]
-        {ver, status, issued-at, is-acceptable, auth} = @raven-resp
+        {ver, status, issued-at, is-acceptable, auth, msg} = @raven-resp
         
-        switch @raven-resp
+        switch
             | ver isnt @ver            => ['wrong protocol version']
             | status isnt 200          =>
-                let err = 'ERROR: authentication failed - ' + raven-resp.status
-                    cause = if raven-resp.msg then ", #{ raven-resp.msg }" else ''
-                    [err + cause, raven-resp.status]
+                let err = 'ERROR: authentication failed - ' + status
+                    cause = if msg then ", #{ msg }" else ''
+                    [err + cause, status]
             | issued-at > max-now      => ['reply issued in the future?']
             | issued-at < min-now      => ['reply is stale']
             | not is-acceptable        => ['authentication method is unacceptable']
