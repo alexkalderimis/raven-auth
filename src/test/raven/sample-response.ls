@@ -1,7 +1,11 @@
-sample-response = '2!200!!20130404T013030Z!1365039030-16998-4!http%3A%2F%2Flocalhost%3A3001%2F!test0001!pwd!!36000!!901!EJhXHSEuaj2T3U-f-8OMCIb2DSkFvx7jRUFY5EgGlLiyKlWcR7s1DI..FJLKGc6Otb9rKFK-haF7NvyzMMmOkbx1iKZSgUXW5B420-dW.7TPOB187xcHzQezPSw7rHxrq2byp-pRkT7G9TDWDrqAMblasSsN3s8Nanifp1gOcxA_'
-
+require! qs
 expect = require('chai').expect
 key-store = require '../key-store'
+
+raw-response = '2!200!!20130411T181511Z!1365704106-26631-0!http%3A%2F%2Flocalhost%3A3001%2F!test0003!!pwd!32959!!901!JLaFVXJa7xK3ea0d1LDCIkXyeGqTHiJE-qXneQeSYvheNYzzCtHZvsfisyevyPr9l2lpTRP67Szoy1IUx2oQzxjBczoimMjdjCefkaLybI8NcZtGiY9iaFuodohdUO.mEw3m8SPnvyhsNm2qrpatfvQYkfuLeaLjLelZRyBHC7E_'
+
+
+sample-response = qs.parse("x=#{ raw-response }").x
 get-key = -> key-store \pub
 auth-types = [ \pwd ]
 
@@ -27,9 +31,9 @@ let test = it
         test 'auth is ok', ->
             expect(resp.auth-ok!).to.be.true
 
-        test.skip 'sig matches content', ->
+        test 'sig matches content', ->
             expect(resp.sig-matches-content!).to.be.true
 
-        test.skip 'should be valid', ->
+        test 'should be valid', ->
 
             expect(resp.is-valid!).to.be.true
