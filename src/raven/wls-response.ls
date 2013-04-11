@@ -7,12 +7,15 @@ exists = (x) -> !! (x? and (not x.length? or not empty x))
 
 required-parts = [\ver \status \issuedAt \id \url]
 
+# Dates come as: 20130411T184130Z => Thu Apr 11 18:41:30 UTC 2013
+
 DATE_RE = /(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z/
 
 parse-date = (str) ->
     | DATE_RE.test(str) =>
-        let [y, mo, d, h, mi, s] = [+x for x in drop 1, DATE_RE.exec str]
-            new Date y, mo, d, h, mi, s # Can't subclass dates, so can't splat args
+        let [y, mon, d, h, min, s] = [+x for x in drop 1, DATE_RE.exec str]
+            time                 = Date.UTC y, mon - 1, d, h, min, s
+            new Date time
     | otherwise         => null
 
 SIG_RE = /(_|\.|-)/g
