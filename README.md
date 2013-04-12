@@ -23,7 +23,7 @@ var conf = {...}; // Your raven configuration here...
 var app = connect()
     .use(connect.bodyParser())
     .use(connect.query())
-    .use(connect.queryParser())
+    .use(connect.cookieParser())           // If using cookies for sessions.
     .use(connect.session({secret: 'foo'})) // Or any API compatible session library.
     .use(raven(conf))
     .use(routes);
