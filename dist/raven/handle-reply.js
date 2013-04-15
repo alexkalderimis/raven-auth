@@ -4,7 +4,8 @@ if (typeof window == 'undefined' || window === null) {
   prelude.installPrelude(window);
 }
 (function(){
-  var ReplyHandler;
+  var debug, ReplyHandler;
+  debug = require('debug')('raven-auth:phase2');
   ReplyHandler = (function(){
     ReplyHandler.displayName = 'ReplyHandler';
     var prototype = ReplyHandler.prototype, constructor = ReplyHandler;
@@ -12,7 +13,14 @@ if (typeof window == 'undefined' || window === null) {
       var ref$;
       this.req = req;
       this.res = res;
-      import$(this, config);
+      this.maxSkew = config.maxSkew;
+      this.ver = config.ver;
+      this.maxSessionLife = config.maxSessionLife;
+      this.readReply = config.readReply;
+      this.localHost = config.localHost;
+      if (config.iact != null) {
+        this.iact = config.iact;
+      }
       this.now = new Date().getTime();
       this.url = this.localHost + ((ref$ = this.req.url) != null ? ref$ : '').replace(/\?.*$/, '');
       this.session = this.req.session;
@@ -23,7 +31,8 @@ if (typeof window == 'undefined' || window === null) {
         return this.ravenResp = this.readReply(reply);
       } catch (e$) {
         e = e$;
-        return this.setError(500, "Error: " + e + "\n" + e.stack);
+        debug("Could not parse reply: " + e);
+        return this.setError(500, "Error parsing reply from WLS: " + e + "\n" + e.stack);
       }
     };
     prototype.startHandling = function(){
@@ -97,13 +106,14 @@ if (typeof window == 'undefined' || window === null) {
         }), results$ = [];
         for (i$ = 0, len$ = (ref$ = [fn$, fn1$]).length; i$ < len$; ++i$) {
           f = ref$[i$];
-          results$.push(foldl(f, this.now, [this.maxSkew, 1]));
+          results$.push(foldl(f, this.now, [this.maxSkew, 1000]));
         }
         return results$;
       }.call(this)), minNow = ref$[0], maxNow = ref$[1];
       ref$ = this.ravenResp, ver = ref$.ver, status = ref$.status, issuedAt = ref$.issuedAt, isAcceptable = ref$.isAcceptable, auth = ref$.auth, msg = ref$.msg;
       switch (false) {
       case ver === this.ver:
+        debug('response version (%s) is not config version (%s)', ver, this.ver);
         return ['wrong protocol version'];
       case status === 200:
         return (function(err){
@@ -114,6 +124,8 @@ if (typeof window == 'undefined' || window === null) {
       case !(issuedAt > maxNow):
         return ['reply issued in the future?'];
       case !(issuedAt < minNow):
+        debug("issued at should be " + minNow + " .. " + maxNow);
+        debug("reply was issued at " + issuedAt.getTime());
         return ['reply is stale'];
       case !!isAcceptable:
         return ['authentication method is unacceptable'];
@@ -133,16 +145,6 @@ if (typeof window == 'undefined' || window === null) {
     x$.reply();
     return x$;
   });
-  function debug(){
-    if (process.env.DEBUG) {
-      console.log.apply(this, arguments);
-    }
-  }
-  function import$(obj, src){
-    var own = {}.hasOwnProperty;
-    for (var key in src) if (own.call(src, key)) obj[key] = src[key];
-    return obj;
-  }
   function curry$(f, bound){
     var context,
     _curry = function(args) {

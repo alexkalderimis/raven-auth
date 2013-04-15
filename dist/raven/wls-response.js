@@ -4,9 +4,12 @@ if (typeof window == 'undefined' || window === null) {
   prelude.installPrelude(window);
 }
 (function(){
-  var crypto, qs, notThere, exists, requiredParts, DATE_RE, parseDate, SIG_RE, reSig, WlsResponse, NoResponse, split$ = ''.split;
+  var crypto, qs, debug, util, log, notThere, exists, requiredParts, DATE_RE, parseDate, SIG_RE, sigTr, sigDecode, WlsResponse, NoResponse, split$ = ''.split;
   crypto = require('crypto');
   qs = require('qs');
+  debug = require('debug');
+  util = require('util');
+  log = debug('raven-auth:wls-response');
   notThere = function(x){
     return x == null || empty(x);
   };
@@ -14,7 +17,7 @@ if (typeof window == 'undefined' || window === null) {
     return !!(x != null && (x.length == null || !empty(x)));
   };
   requiredParts = ['ver', 'status', 'issuedAt', 'id', 'url'];
-  DATE_RE = /(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z/;
+  DATE_RE = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/;
   parseDate = function(str){
     var x;
     switch (false) {
@@ -37,9 +40,12 @@ if (typeof window == 'undefined' || window === null) {
     }
   };
   SIG_RE = /(_|\.|-)/g;
-  reSig = objToFunc(
+  sigTr = objToFunc(
   listToObj(
   [['-', '+'], ['.', '/'], ['_', '=']]));
+  sigDecode = function(it){
+    return it != null ? it.replace(SIG_RE, sigTr) : void 8;
+  };
   module.exports = WlsResponse = (function(){
     WlsResponse.displayName = 'WlsResponse';
     var prototype = WlsResponse.prototype, constructor = WlsResponse;
@@ -61,11 +67,12 @@ if (typeof window == 'undefined' || window === null) {
       if (this.kid) {
         this.key = keyStore(this.kid);
       }
-      this.sig = sig != null ? sig.replace(SIG_RE, reSig) : void 8;
+      this.sig = sigDecode(sig);
       this.signedData = function(it){
         return it.join('!');
       }(
       take(parts.length - 2, parts));
+      log("Parsed response: " + util.inspect(this));
     }
     prototype.isValid = function(){
       var this$ = this;
@@ -104,15 +111,16 @@ if (typeof window == 'undefined' || window === null) {
       return this.status !== 200 || (this.sig != null && this.key != null && this.sigMatchesContent());
     };
     prototype.sigMatchesContent = function(){
-      var v;
-      if (process.env.DEBUG) {
-        console.log(this.sig, this.signedData);
-      }
-      v = crypto.createVerify('sha1');
-      v.update(this.signedData);
-      return v.verify(this.key, this.sig, 'base64');
+      var x$, v, ok;
+      log(this.sig, this.signedData);
+      x$ = v = crypto.createVerify('sha1');
+      x$.update(this.signedData);
+      ok = v.verify(this.key, this.sig, 'base64');
+      log("Signature verification " + (ok ? 'succeeded' : 'failed'));
+      return ok;
     };
     prototype.redirect = function(res){
+      log("Redirecting to " + this.url);
       res.writeHead(302, {
         Location: this.url
       });
@@ -131,20 +139,13 @@ if (typeof window == 'undefined' || window === null) {
   NoResponse = (function(superclass){
     var prototype = extend$((import$(NoResponse, superclass).displayName = 'NoResponse', NoResponse), superclass).prototype, constructor = NoResponse;
     function NoResponse(){
-      if (process.env.DEBUG) {
-        console.log("NO RESPONSE");
-      }
+      log('NO RESPONSE');
     }
     prototype.isValid = function(){
       return false;
     };
     return NoResponse;
   }(WlsResponse));
-  function debug(){
-    if (process.env.DEBUG) {
-      console.log.apply(this, arguments);
-    }
-  }
   function in$(x, arr){
     var i = -1, l = arr.length >>> 0;
     while (++i < l) if (x === arr[i] && i in arr) return true;

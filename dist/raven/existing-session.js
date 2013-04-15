@@ -4,7 +4,8 @@ if (typeof window == 'undefined' || window === null) {
   prelude.installPrelude(window);
 }
 (function(){
-  var err;
+  var debug, err;
+  debug = require('debug')('raven-auth:phase1');
   module.exports = curry$(function(config, req, res, next, ravenResp){
     var now, session, timeout, statusCode, issue, last, expire, message, reject;
     now = new Date().getTime();
@@ -26,6 +27,7 @@ if (typeof window == 'undefined' || window === null) {
     } else if (session.principal != null && ravenResp == null) {
       debug("auth succeeded");
       if (session.postData != null) {
+        debug("restoring post data: " + session.postData);
         req.body = session.postData;
       }
       session.last = now;
@@ -37,16 +39,11 @@ if (typeof window == 'undefined' || window === null) {
     return false;
   });
   err = curry$(function(res, session, message, code){
-    debug(message);
+    debug("Destroying session: " + message);
     session.destroy();
     res.statusCode = code;
     return res.end(message, 'utf8');
   });
-  function debug(){
-    if (process.env.DEBUG) {
-      console.log.apply(this, arguments);
-    }
-  }
   function curry$(f, bound){
     var context,
     _curry = function(args) {

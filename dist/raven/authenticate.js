@@ -4,6 +4,8 @@ if (typeof window == 'undefined' || window === null) {
   prelude.installPrelude(window);
 }
 (function(){
+  var debug;
+  debug = require('debug')('raven-auth:authenticate');
   module.exports = curry$(function(config, toAuthReq, req, res){
     var session, msg, desc, Location;
     session = req.session;
@@ -12,6 +14,7 @@ if (typeof window == 'undefined' || window === null) {
     if (req.method !== 'GET') {
       session.postData = req.body;
     }
+    debug("Saved request body: " + JSON.stringify(req.body));
     msg = typeof config.getMsg === 'function' ? config.getMsg(req) : void 8;
     desc = typeof config.getDesc === 'function' ? config.getDesc(req) : void 8;
     Location = toAuthReq({
@@ -19,9 +22,7 @@ if (typeof window == 'undefined' || window === null) {
       msg: msg,
       desc: desc
     });
-    if (process.env.DEBUG) {
-      console.log("Redirecting to " + Location);
-    }
+    debug("Redirecting to " + Location);
     res.writeHead(302, {
       Location: Location
     });

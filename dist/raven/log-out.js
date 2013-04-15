@@ -4,10 +4,13 @@ if (typeof window == 'undefined' || window === null) {
   prelude.installPrelude(window);
 }
 (function(){
+  var debug;
+  debug = require('debug')('raven-auth:log-out');
   module.exports = curry$(function(arg$, req, res, next){
     var logOutPath, ravenLogOut, x$;
     logOutPath = arg$.logOutPath, ravenLogOut = arg$.ravenLogOut;
     if (logOutPath != null && req.url.match(logOutPath)) {
+      debug("Logging out");
       req.session.destroy();
       x$ = res;
       x$.writeHead(302, {

@@ -4,17 +4,17 @@ if (typeof window == 'undefined' || window === null) {
   prelude.installPrelude(window);
 }
 (function(){
-  var WlsResponse, getRedirect, handleExistingSession, handleReply, authenticate, checkLogOut, util;
-  WlsResponse = require('./wls-response');
+  var getRedirect, handleExistingSession, handleReply, authenticate, checkLogOut, Config, util;
   getRedirect = require('./auth-request');
   handleExistingSession = require('./existing-session');
   handleReply = require('./handle-reply');
   authenticate = require('./authenticate');
   checkLogOut = require('./log-out');
+  Config = require('./config');
   util = require('util');
-  module.exports = function(config){
-    var logOut, phase1, phase2, phase3, raven;
-    config.readReply = WlsResponse.parse(config.keyStore, config.authTypes);
+  module.exports = function(opts){
+    var config, logOut, phase1, phase2, phase3, raven;
+    config = new Config(opts);
     logOut = checkLogOut(config);
     phase1 = handleExistingSession(config);
     phase2 = handleReply(config);
