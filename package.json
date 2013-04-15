@@ -2,7 +2,7 @@
   "name": "raven-auth",
   "version": "0.0.1",
   "description": "Authentication middle-ware for raven, the authentication provider for cam.ac.uk",
-  "main": "dist/raven.js",
+  "main": "./dist/raven.js",
   "devDependencies": {
     "LiveScript": "~1.1.1",
     "grunt": "~0.4.1",
