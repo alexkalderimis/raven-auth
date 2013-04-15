@@ -19,6 +19,8 @@ get-config = -> {
     key-store, auth-types, timeout, read-reply: id
 }
 
+TOLERANCE = 500ms
+
 class InvalidResponse
     is-valid: -> false
 
@@ -256,10 +258,10 @@ let test = it
                 expect(req.session.status-code).to.equal 200
 
             test 'The session should have the right issue', ->
-                expect(req.session.issue).to.be.within (now -100), (now +100)
+                expect(req.session.issue).to.be.within (now -TOLERANCE), (now +TOLERANCE)
 
             test 'The session should have the right last use time', ->
-                expect(req.session.last).to.be.within (now -100), (now +100)
+                expect(req.session.last).to.be.within (now -TOLERANCE), (now +TOLERANCE)
 
             test 'The session should have the right life', ->
                 expect(req.session.life).to.equal 100
@@ -299,10 +301,10 @@ let test = it
                 expect(req.session.status-code).to.equal 200
 
             test 'The session should have the right issue', ->
-                expect(req.session.issue).to.be.within (now -100), (now +100)
+                expect(req.session.issue).to.be.within (now -TOLERANCE), (now +TOLERANCE)
 
             test 'The session should have the right last use time', ->
-                expect(req.session.last).to.be.within (now -100), (now +100)
+                expect(req.session.last).to.be.within (now -TOLERANCE), (now +TOLERANCE)
 
             test 'The session should have the right life', ->
                 expect(req.session.life).to.equal 100
