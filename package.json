@@ -15,7 +15,7 @@
     "grunt-cli": "~0.1.7",
     "q": "~0.9.2",
     "request": "~2.16.6",
-    "cheerio": "~0.10.8",
+    "cheerio": "~0.10.8"
   },
   "dependencies": {
     "prelude-ls": "~0.6.0",
@@ -24,8 +24,8 @@
   },
   "scripts": {
     "test": "./node_modules/.bin/grunt",
-    "pre-publish": "./node_modules/.bin/grunt && mv build dist",
-    "pre-start": "./node_modules/.bin/grunt",
+    "prepublish": "./node_modules/.bin/grunt && mv build dist",
+    "prestart": "./node_modules/.bin/grunt",
     "start": "node build/test/test-server"
   }
 }
