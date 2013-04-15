@@ -8,7 +8,7 @@ class ReplyHandler
         @now = new Date().getTime!
         @url = @local-host + (@req.url ? '').replace /\?.*$/, ''
         {@session} = @req
-    
+
     parse-reply: (reply) ->
         try
             @raven-resp = @read-reply reply
