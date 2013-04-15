@@ -79,7 +79,7 @@ module.exports = (g) ->
       .fail(done)
 
   g.initConfig
-    clean: ['build']
+    clean: ['build', 'dist']
     watch:
       files: "src/**/*.ls"
       tasks: "default"
