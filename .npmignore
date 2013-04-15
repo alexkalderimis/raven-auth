@@ -1,0 +1,4 @@
+src
+build
+dist/test
+Gruntfile.coffee
