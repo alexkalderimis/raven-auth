@@ -1,7 +1,7 @@
 MiddleWare = require './raven/middle-ware'
-RavenStrategy = require './raven/stratagy'
+RavenStrategy = require './raven/strategy'
 
 module.exports = MiddleWare
 
-module.exports.RavenStrategy = RavenStrategy
+module.exports.strategy = -> new RavenStrategy it
 

@@ -5,7 +5,7 @@ debug = require('debug') 'raven-auth:config'
 class Config
 
     (opts) ->
-        import opts
+        import all opts
         if @key-store?.substring? # Promote to func
             dir = @key-store
             debug 'Loading keys from %s', dir

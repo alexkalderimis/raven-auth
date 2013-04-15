@@ -1,5 +1,5 @@
 require! connect
-raven = require '../raven/middle-ware'
+raven = require '../raven'
 
 port = process.env.PORT or 3001
 
