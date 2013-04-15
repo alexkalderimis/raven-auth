@@ -1,11 +1,12 @@
+require! util
+debug = require('debug') 'raven-auth:middle-ware'
+
 get-redirect = require './auth-request'
 handle-existing-session = require './existing-session'
 handle-reply = require './handle-reply'
 authenticate = require './authenticate'
 check-log-out = require './log-out'
 Config = require './config'
-
-require! util
 
 module.exports = (opts) ->
 
@@ -18,10 +19,10 @@ module.exports = (opts) ->
 
     raven = (req, res, next) ->
 
-        reply = req.query['WLS-Response'] 
+        reply = req.query['WLS-Response']
         debug "Got reply #{ reply }"
         {session} = req
-        debug util.inspect session if session?
+        debug session
 
         debug "Entering phase 1"
         if session?.sent-to-raven
@@ -37,7 +38,4 @@ module.exports = (opts) ->
         phase3 req, res
 
     (req, res, next) -> log-out req, res, -> raven req, res, next
-
-!function debug
-    console.log ... if process.env.DEBUG
 
