@@ -1,5 +1,5 @@
-require! crypto
-require! qs
+require! [crypto, qs, debug, util]
+log = debug 'raven-auth:wls-response'
 
 not-there = (x) -> not x? or empty x
 
@@ -9,7 +9,7 @@ required-parts = [\ver \status \issuedAt \id \url]
 
 # Dates come as: 20130411T184130Z => Thu Apr 11 18:41:30 UTC 2013
 
-DATE_RE = /(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z/
+DATE_RE = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/
 
 parse-date = (str) ->
     | DATE_RE.test(str) =>
@@ -19,7 +19,8 @@ parse-date = (str) ->
     | otherwise         => null
 
 SIG_RE = /(_|\.|-)/g
-re-sig = [[\- \+], [\. \/], [\_ \=]] |> listToObj |> objToFunc
+sig-tr = [[\- \+], [\. \/], [\_ \=]] |> listToObj |> objToFunc
+sig-decode = -> it?.replace SIG_RE, sig-tr
 
 module.exports = class WlsResponse
 
@@ -34,11 +35,11 @@ module.exports = class WlsResponse
         @acceptable = acceptable = (auth-types ? []).slice!
         @is-acceptable = orList map (in acceptable), @previousAuth ++ [@auth]
         @key = key-store(@kid) if @kid
-        @sig = sig?.replace SIG_RE, re-sig
+        @sig = sig-decode sig
         @signed-data = take (parts.length - 2), parts |> (.join \!)
+        log "Parsed response: #{ util.inspect @ }"
 
-    is-valid: ->
-        [\parts \princ \auth \sig] |> map ((+ \Ok) >> ~> @[it]!) |> andList
+    is-valid: -> [\parts \princ \auth \sig] |> map ((+ \Ok) >> ~> @[it]!) |> andList
 
     parts-ok: -> andList [exists @[x] for x in required-parts]
 
@@ -49,12 +50,15 @@ module.exports = class WlsResponse
     sig-ok: -> @status isnt 200 or (@sig? and @key? and @sig-matches-content())
 
     sig-matches-content: ->
-        console.log @sig, @signed-data if process.env.DEBUG
+        log @sig, @signed-data
         v = crypto.createVerify 'sha1'
-        v.update @signed-data
-        v.verify(@key, @sig, 'base64')
+                 ..update @signed-data
+        ok = v.verify(@key, @sig, 'base64')
+        log "Signature verification #{ if ok then 'succeeded' else 'failed' }"
+        ok
 
     redirect: (res) ->
+        log "Redirecting to #{ @url }"
         res.writeHead 302, Location: @url
         res.end()
 
@@ -64,10 +68,7 @@ module.exports = class WlsResponse
 
 class NoResponse extends WlsResponse
 
-    ->
-        console.log "NO RESPONSE" if process.env.DEBUG
+    -> log 'NO RESPONSE'
 
     is-valid: -> false
 
-!function debug
-    console.log ... if process.env.DEBUG

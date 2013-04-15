@@ -1,7 +1,10 @@
+debug = require('debug') 'raven-auth:phase2'
+
 class ReplyHandler
 
     (config, @req, @res) ->
-        import config
+        import config{max-skew, ver, max-session-life, read-reply, local-host}
+        @iact = config.iact if config.iact?
         @now = new Date().getTime!
         @url = @local-host + (@req.url ? '').replace /\?.*$/, ''
         {@session} = @req
@@ -10,7 +13,8 @@ class ReplyHandler
         try
             @raven-resp = @read-reply reply
         catch e
-            @set-error 500, "Error: #{ e }\n#{ e.stack }"
+            debug "Could not parse reply: #{ e }"
+            @set-error 500, "Error parsing reply from WLS: #{ e }\n#{ e.stack }"
 
     start-handling: ->
         | not @raven-resp           => null
@@ -67,17 +71,22 @@ class ReplyHandler
 
     check-resp: ->
 
-        [min-now, max-now] = [foldl f, @now, [@max-skew, 1] for f in [(-), (+)]]
+        [min-now, max-now] = [foldl f, @now, [@max-skew, 1000sec] for f in [(-), (+)]]
         {ver, status, issued-at, is-acceptable, auth, msg} = @raven-resp
-        
+
         switch
-            | ver isnt @ver            => ['wrong protocol version']
+            | ver isnt @ver            =>
+                debug 'response version (%s) is not config version (%s)', ver, @ver
+                ['wrong protocol version']
             | status isnt 200          =>
                 let err = 'ERROR: authentication failed - ' + status
                     cause = if msg then ", #{ msg }" else ''
                     [err + cause, status]
             | issued-at > max-now      => ['reply issued in the future?']
-            | issued-at < min-now      => ['reply is stale']
+            | issued-at < min-now      =>
+                debug "issued at should be #{ min-now } .. #{ max-now }"
+                debug "reply was issued at #{ issued-at.get-time! }"
+                ['reply is stale']
             | not is-acceptable        => ['authentication method is unacceptable']
             | @iact @req and not auth? => ['forced interaction request not honoured']
             | otherwise                => []
@@ -88,5 +97,3 @@ module.exports = (config, reply, req, res) -->
         ..start-handling!
         ..reply!
 
-!function debug
-    console.log ... if process.env.DEBUG
