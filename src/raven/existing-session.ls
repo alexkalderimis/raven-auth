@@ -1,3 +1,5 @@
+debug = require('debug') 'raven-auth:phase1'
+
 module.exports = (config, req, res, next, raven-resp) -->
     now = new Date().getTime()
     {session} = req
@@ -19,6 +21,7 @@ module.exports = (config, req, res, next, raven-resp) -->
     else if session.principal? and not raven-resp?
         debug "auth succeeded"
         if session.post-data?
+            debug "restoring post data: #{ session.post-data }"
             req.body = session.post-data
         session.last = now
         next!
@@ -28,10 +31,8 @@ module.exports = (config, req, res, next, raven-resp) -->
     false
 
 err = (res, session, message, code) -->
-    debug message
+    debug "Destroying session: #{ message }"
     session.destroy!
     res.status-code = code
     res.end message, \utf8
 
-!function debug
-    console.log ... if process.env.DEBUG

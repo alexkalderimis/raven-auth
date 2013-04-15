@@ -1,15 +1,15 @@
-WlsResponse = require './wls-response'
 get-redirect = require './auth-request'
 handle-existing-session = require './existing-session'
 handle-reply = require './handle-reply'
 authenticate = require './authenticate'
 check-log-out = require './log-out'
+Config = require './config'
 
 require! util
 
-module.exports = (config) ->
+module.exports = (opts) ->
 
-    config.read-reply = WlsResponse.parse config.key-store, config.auth-types
+    config = new Config opts
 
     log-out = check-log-out config
     phase1 = handle-existing-session config
@@ -18,7 +18,7 @@ module.exports = (config) ->
 
     raven = (req, res, next) ->
 
-        reply = req.query['WLS-Response'] #.WlsResponse
+        reply = req.query['WLS-Response'] 
         debug "Got reply #{ reply }"
         {session} = req
         debug util.inspect session if session?
