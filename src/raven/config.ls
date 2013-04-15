@@ -22,4 +22,14 @@ class Config
     max-skew: 1000ms
     auth-types: [ \pwd ]
 
+    # By default fail by sending a message to the user
+    fail: (req, res) -> (message, code) ->
+        req.session?.destroy!
+        res.status-code = code
+        res.end message, \utf8
+
+    redirect: (req, res) -> (Location) ->
+        res.writeHead 302, {Location}
+        res.end!
+
 module.exports = Config

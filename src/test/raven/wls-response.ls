@@ -22,7 +22,7 @@ get-args = -> [
     'a message',
     \20130411T184328Z,
     \id,
-    'http://some.url.org',
+    encodeURIComponent('http://some.url.org'),
     \me,
     \dummy,
     '',
@@ -99,16 +99,4 @@ let test = it
         @beforeAll -> resp := parse-reply args
 
         test 'should be valid', -> expect(resp.is-valid()).to.be.true
-
-        test 'should be able to redirect', ->
-
-            res = new Response
-            resp.redirect res
-
-            expect(res.data.ended).to.be.true
-            expect(res.headers.Location).to.equal 'http://some.url.org'
-            expect(res.statusCode).to.equal 302
-
-
-
 

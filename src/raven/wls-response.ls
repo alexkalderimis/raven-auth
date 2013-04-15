@@ -57,11 +57,6 @@ module.exports = class WlsResponse
         log "Signature verification #{ if ok then 'succeeded' else 'failed' }"
         ok
 
-    redirect: (res) ->
-        log "Redirecting to #{ @url }"
-        res.writeHead 302, Location: @url
-        res.end()
-
     @parse = (key-store, auth-types, source) -->
         | not source => new NoResponse
         | otherwise  => new WlsResponse key-store, auth-types, source / \!

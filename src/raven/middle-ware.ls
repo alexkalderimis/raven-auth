@@ -24,18 +24,21 @@ module.exports = (opts) ->
         {session} = req
         debug session
 
+        fail = config.fail req, res
+        redirect = config.redirect req, res
+
         debug "Entering phase 1"
         if session?.sent-to-raven
-            proceed = phase1 req, res, next, reply
+            proceed = phase1 req, fail, next, reply
             debug "Can proceed?: #{ proceed }"
             return unless proceed
 
         debug "Entering phase 2"
         if reply?
-            return phase2 reply, req, res
+            return phase2 reply, req, fail, redirect
 
         debug "Entering phase 3"
-        phase3 req, res
+        phase3 req, redirect
 
     (req, res, next) -> log-out req, res, -> raven req, res, next
 

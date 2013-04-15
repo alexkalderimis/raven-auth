@@ -3,7 +3,7 @@ expect = require('chai').expect
 authenticate = require '../../raven/authenticate'
 
 Request = require '../request'
-Response = require '../response'
+CallTracker = require '../call-tracker'
 
 to-auth-req = -> "I am an auth request"
 
@@ -18,9 +18,9 @@ let test = it
     describe 'Simple authentication', ->
 
         req = new Request method: \GET, body: \foo
-        res = new Response
+        redirect = new CallTracker
 
-        authenticate empty-config, to-auth-req, req, res
+        authenticate empty-config, to-auth-req, req, redirect~call
 
         test 'session should have a can-store property', ->
             expect(req.session.can-store).to.be.true
@@ -29,17 +29,17 @@ let test = it
             expect(req.session.post-data).to.not.exist
 
         test 'response should have been ended', ->
-            expect(res.data.ended).to.be.true
+            expect(redirect.called).to.be.true
 
         test 'response should be a redirect', ->
-            expect(res.headers.Location).to.equal 'I am an auth request'
+            expect(redirect.args[0]).to.equal 'I am an auth request'
 
     describe 'With post-data', ->
 
         req = new Request method: \POST, body: \foo
-        res = new Response
+        redirect = new CallTracker
 
-        authenticate empty-config, to-auth-req, req, res
+        authenticate empty-config, to-auth-req, req, redirect~call
 
         test 'session should have a can-store property', ->
             expect(req.session.can-store).to.be.true
@@ -48,18 +48,18 @@ let test = it
             expect(req.session.post-data).to.equal \foo
 
         test 'response should have been ended', ->
-            expect(res.data.ended).to.be.true
+            expect(redirect.called).to.be.true
 
         test 'response should be a redirect', ->
-            expect(res.headers.Location).to.equal 'I am an auth request'
+            expect(redirect.args[0]).to.equal 'I am an auth request'
 
     describe 'Providing messages and descriptions', ->
 
         req = new Request method: \GET, body: \foo
-        res = new Response
+        redirect = new CallTracker
         var ar-args
 
-        authenticate config-with-fns, (to-auth-req << -> ar-args := it), req, res
+        authenticate config-with-fns, (to-auth-req << -> ar-args := it), req, redirect~call
 
         test 'session should have a can-store property', ->
             expect(req.session.can-store).to.be.true
@@ -68,10 +68,10 @@ let test = it
             expect(req.session.post-data).to.not.exist
 
         test 'response should have been ended', ->
-            expect(res.data.ended).to.be.true
+            expect(redirect.called).to.be.true
 
         test 'response should be a redirect', ->
-            expect(res.headers.Location).to.equal 'I am an auth request'
+            expect(redirect.args[0]).to.equal 'I am an auth request'
 
         test 'get-msg was called', ->
             expect(req.called-get-msg).to.be.true

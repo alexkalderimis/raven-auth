@@ -1,14 +1,13 @@
 debug = require('debug') 'raven-auth:phase1'
 
-module.exports = (config, req, res, next, raven-resp) -->
-    now = new Date().getTime()
+module.exports = (config, req, reject, succeed, raven-resp) -->
+    now = Date.now!
     {session} = req
     {timeout} = config
     {status-code, issue, last, expire, message} = session
-    reject = err res, session
 
     if status-code is 410
-        reject 'You cancelled the authentication', 403  
+        reject 'You cancelled the authentication', 403
     else if status-code? and status-code isnt 200
         reject message, 500
     else if now? and (now < issue or now < last)
@@ -24,15 +23,9 @@ module.exports = (config, req, res, next, raven-resp) -->
             debug "restoring post data: #{ session.post-data }"
             req.body = session.post-data
         session.last = now
-        next!
+        succeed!
     else
         debug "Need to parse response from raven"
         return true
     false
-
-err = (res, session, message, code) -->
-    debug "Destroying session: #{ message }"
-    session.destroy!
-    res.status-code = code
-    res.end message, \utf8
 
