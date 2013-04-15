@@ -32,7 +32,7 @@ if (typeof window == 'undefined' || window === null) {
     prototype.timeout = 60000;
     prototype.maxSessionLife = 24 * 60 * 60 * 1000;
     prototype.ver = 2;
-    prototype.maxSkew = 1;
+    prototype.maxSkew = 1000;
     prototype.authTypes = ['pwd'];
     return Config;
   }());
