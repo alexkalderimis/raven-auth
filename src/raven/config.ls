@@ -19,7 +19,7 @@ class Config
     timeout: 60_000ms
     max-session-life: 24hrs * 60min * 60sec * 1000ms
     ver: 2
-    max-skew: 1sec
+    max-skew: 1000ms
     auth-types: [ \pwd ]
 
 module.exports = Config
