@@ -2,6 +2,7 @@
   "name": "raven-auth",
   "version": "0.0.1",
   "description": "Authentication middle-ware for raven, the authentication provider for cam.ac.uk",
+  "main": "dist/raven.js",
   "devDependencies": {
     "LiveScript": "~1.1.1",
     "grunt": "~0.4.1",
@@ -18,5 +19,9 @@
     "q": "~0.9.2",
     "request": "~2.16.6",
     "cheerio": "~0.10.8"
+  },
+  "scripts": {
+    "test": "./node_modules/.bin/grunt",
+    "pre-publish": "./node_modules/.bin/grunt && mv build dist"
   }
 }
