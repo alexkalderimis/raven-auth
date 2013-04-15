@@ -1,6 +1,6 @@
 {
   "name": "raven-auth",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Authentication middle-ware for raven, the authentication provider for cam.ac.uk",
   "main": "./dist/raven.js",
   "devDependencies": {
